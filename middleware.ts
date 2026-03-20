@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // In mock mode, bypass auth entirely — treat every request as authenticated
   if (process.env.USE_MOCK === 'true') {
     // Redirect / to /dashboard
