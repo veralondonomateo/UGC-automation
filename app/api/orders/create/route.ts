@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createMastershopOrder } from '@/lib/mastershop/api'
+import { sendWhatsAppWithLog } from '@/lib/whatsapp/notify'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -29,15 +30,11 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // WhatsApp notification
-  await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/whatsapp/send`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      phone: ugc.phone,
-      template: 'order_sent',
-      params: [ugc.full_name, order.tracking_url || 'Sin tracking aún'],
-      ugc_id,
-    }),
+  await sendWhatsAppWithLog(supabase, {
+    phone: ugc.phone,
+    template: 'order_sent',
+    params: [ugc.full_name, order.tracking_url || 'Sin tracking aún'],
+    ugc_id,
   })
 
   return NextResponse.json(order, { status: 201 })

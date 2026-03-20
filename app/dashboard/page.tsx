@@ -1,14 +1,17 @@
 export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
+import { getAnalyticsData } from '@/lib/analytics/queries'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { ScoreBadge } from '@/components/ui/ScoreBadge'
 import { Users, TrendingDown, Play, Award } from 'lucide-react'
 import Link from 'next/link'
 
 async function getStats() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/analytics`, { cache: 'no-store' })
-  if (!res.ok) return null
-  return res.json()
+  try {
+    return await getAnalyticsData()
+  } catch {
+    return null
+  }
 }
 
 async function getRecentUGCs() {

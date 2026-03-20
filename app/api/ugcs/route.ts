@@ -28,12 +28,11 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Auto-generate contract
-  await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/contracts/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ugc_id: ugc.id }),
-  })
+  // Auto-generate contract inline
+  try {
+    const { generateContract } = await import('@/lib/contracts/generate')
+    await generateContract(supabase, ugc)
+  } catch { /* non-fatal */ }
 
   return NextResponse.json(ugc, { status: 201 })
 }

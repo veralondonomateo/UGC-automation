@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic'
+import { getAnalyticsData } from '@/lib/analytics/queries'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { AnalyticsChart } from '@/components/analytics/AnalyticsChart'
 import { Users, TrendingDown, Play, Award } from 'lucide-react'
 
 async function getAnalytics() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/analytics`, { cache: 'no-store' })
-    return res.ok ? res.json() : null
+    return await getAnalyticsData()
   } catch { return null }
 }
 

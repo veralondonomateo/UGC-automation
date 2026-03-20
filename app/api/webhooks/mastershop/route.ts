@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendWhatsAppWithLog } from '@/lib/whatsapp/notify'
+import { getBaseUrl } from '@/lib/utils/url'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -23,16 +25,12 @@ export async function POST(req: NextRequest) {
 
   if (status === 'delivered' && order.ugcs) {
     const ugc = order.ugcs as { full_name: string; phone: string; id: string }
-    const briefLink = `${process.env.NEXT_PUBLIC_APP_URL}/ugc/${ugc.id}/brief`
-    await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/whatsapp/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        phone: ugc.phone,
-        template: 'order_delivered',
-        params: [ugc.full_name, briefLink],
-        ugc_id: ugc.id,
-      }),
+    const briefLink = `${getBaseUrl()}/ugc/${ugc.id}/brief`
+    await sendWhatsAppWithLog(supabase, {
+      phone: ugc.phone,
+      template: 'order_delivered',
+      params: [ugc.full_name, briefLink],
+      ugc_id: ugc.id,
     })
   }
 
