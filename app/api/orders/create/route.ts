@@ -5,22 +5,23 @@ import { sendWhatsAppWithLog } from '@/lib/whatsapp/notify'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
-  const { ugc_id, product_name = 'Producto UGC' } = await req.json()
+  const { ugc_id } = await req.json()
 
   const { data: ugc, error: ugcErr } = await supabase.from('ugcs').select('*').eq('id', ugc_id).single()
   if (ugcErr || !ugc) return NextResponse.json({ error: 'UGC no encontrado' }, { status: 404 })
 
   // Create order in MasterShop
   const msResult = await createMastershopOrder({
-    ugc_id, product_name,
+    ugc_id,
     address: ugc.address, city: ugc.city, department: ugc.department,
-    phone: ugc.phone, full_name: ugc.full_name,
+    phone: ugc.phone, full_name: ugc.full_name, email: ugc.email,
   })
 
+  const productName = 'PROBIOTICOS VAGINALES 1 Compra unica'
   const { data: order, error } = await supabase
     .from('orders')
     .insert({
-      ugc_id, product_name, status: 'sent',
+      ugc_id, product_name: productName, status: 'sent',
       mastershop_order_id: msResult.success ? String(msResult.data?.idOrder ?? '') : null,
       sent_at: new Date().toISOString(),
     })

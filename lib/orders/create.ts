@@ -5,19 +5,19 @@ import { sendWhatsAppWithLog } from '@/lib/whatsapp/notify'
 export async function createOrderForUGC(supabase: any, ugc: Record<string, string>) {
   const msResult = await createMastershopOrder({
     ugc_id: ugc.id,
-    product_name: 'Producto UGC',
     address: ugc.address,
     city: ugc.city,
     department: ugc.department,
     phone: ugc.phone,
     full_name: ugc.full_name,
+    email: ugc.email,
   })
 
   const { data: order, error } = await supabase
     .from('orders')
     .insert({
       ugc_id: ugc.id,
-      product_name: 'Producto UGC',
+      product_name: 'PROBIOTICOS VAGINALES 1 Compra unica',
       status: 'sent',
       mastershop_order_id: msResult.success ? String(msResult.data?.idOrder ?? '') : null,
       sent_at: new Date().toISOString(),
