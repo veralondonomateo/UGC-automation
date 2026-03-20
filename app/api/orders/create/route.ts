@@ -5,7 +5,7 @@ import { sendWhatsAppWithLog } from '@/lib/whatsapp/notify'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
-  const { ugc_id, product_name } = await req.json()
+  const { ugc_id, product_name = 'Producto UGC' } = await req.json()
 
   const { data: ugc, error: ugcErr } = await supabase.from('ugcs').select('*').eq('id', ugc_id).single()
   if (ugcErr || !ugc) return NextResponse.json({ error: 'UGC no encontrado' }, { status: 404 })
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     .from('orders')
     .insert({
       ugc_id, product_name, status: 'sent',
-      mastershop_order_id: msResult.success ? msResult.data?.id : null,
+      mastershop_order_id: msResult.success ? String(msResult.data?.idOrder ?? '') : null,
       sent_at: new Date().toISOString(),
     })
     .select()

@@ -28,10 +28,14 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Auto-generate contract inline
+  // Auto-generate contract + Mastershop order in parallel (non-fatal)
   try {
     const { generateContract } = await import('@/lib/contracts/generate')
-    await generateContract(supabase, ugc)
+    const { createOrderForUGC } = await import('@/lib/orders/create')
+    await Promise.all([
+      generateContract(supabase, ugc),
+      createOrderForUGC(supabase, ugc),
+    ])
   } catch { /* non-fatal */ }
 
   return NextResponse.json(ugc, { status: 201 })
