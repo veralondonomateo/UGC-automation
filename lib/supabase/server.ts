@@ -4,15 +4,19 @@ import { createMockClient } from '@/lib/mock/client'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function createClient(): Promise<any> {
-  if (process.env.USE_MOCK === 'true') {
+  if (
+    process.env.USE_MOCK === 'true' ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
     return createMockClient()
   }
 
   const cookieStore = await cookies()
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
