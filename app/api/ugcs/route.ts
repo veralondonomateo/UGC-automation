@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET() {
@@ -28,15 +29,19 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Auto-generate contract + Mastershop order in parallel (non-fatal)
-  try {
-    const { generateContract } = await import('@/lib/contracts/generate')
-    const { createOrderForUGC } = await import('@/lib/orders/create')
-    await Promise.all([
-      generateContract(supabase, ugc),
-      createOrderForUGC(supabase, ugc),
-    ])
-  } catch { /* non-fatal */ }
+  // Fire contract + order AFTER response is sent (non-blocking)
+  after(async () => {
+    try {
+      const { generateContract } = await import('@/lib/contracts/generate')
+      const { createOrderForUGC } = await import('@/lib/orders/create')
+      await Promise.all([
+        generateContract(supabase, ugc),
+        createOrderForUGC(supabase, ugc),
+      ])
+    } catch (err) {
+      console.error('Post-registration tasks failed:', err)
+    }
+  })
 
   return NextResponse.json(ugc, { status: 201 })
 }
