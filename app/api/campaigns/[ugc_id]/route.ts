@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { getCampaignMetrics } from '@/lib/meta/api'
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ ugc_id: string }> }) {
   const { ugc_id } = await params
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: campaigns, error } = await supabase
     .from('campaigns')

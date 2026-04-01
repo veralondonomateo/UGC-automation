@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { createMockClient } from '@/lib/mock/client'
 
@@ -31,6 +32,27 @@ export async function createClient(): Promise<any> {
         },
       },
     }
+  )
+}
+
+/**
+ * Admin client with service role key — bypasses RLS.
+ * Only use in API routes (server-side), never expose to the browser.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createAdminClient(): any {
+  if (
+    process.env.USE_MOCK === 'true' ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.SUPABASE_SERVICE_ROLE_KEY
+  ) {
+    return createMockClient()
+  }
+
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false } }
   )
 }
 

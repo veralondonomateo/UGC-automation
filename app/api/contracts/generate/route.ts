@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { generateContract } from '@/lib/contracts/generate'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { ugc_id } = await req.json()
 
   const { data: ugc, error: ugcErr } = await supabase.from('ugcs').select('*').eq('id', ugc_id).single()

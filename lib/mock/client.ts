@@ -50,7 +50,10 @@ class MockQueryBuilder {
 
   select(str = '*') {
     this._selectStr = str
-    this._mode = 'select'
+    // Don't overwrite insert/update/delete mode — .insert().select().single() must still insert
+    if (this._mode === 'select') {
+      this._mode = 'select'
+    }
     return this
   }
 

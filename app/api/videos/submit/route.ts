@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { addDays } from 'date-fns'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { ugc_id, drive_url } = await req.json()
 
   if (!ugc_id || !drive_url) {

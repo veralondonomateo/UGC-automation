@@ -3,17 +3,16 @@ const MASTERSHOP_BASE_URL = 'https://prod.api.mastershop.com/api'
 const PRODUCT = {
   id_product: 117689,
   id_variant: 423945,
-  sku: 'PROB-VAG-UGC',
-  name: 'PROBIOTICOS VAGINALES 1 Compra unica',
-  weight: 0.5,
-  price: 89000,
+  sku: 'FEM-PROBIOTICOS-001',
+  name: 'PROBIÓTICOS FEM',
+  weight: 1,
+  price: 110000,
 }
 
 function splitName(full_name: string): { first_name: string; last_name: string } {
   const parts = full_name.trim().split(/\s+/)
-  if (parts.length === 1) return { first_name: parts[0], last_name: parts[0] }
   const first_name = parts[0]
-  const last_name = parts.slice(1).join(' ')
+  const last_name = parts.length > 1 ? parts.slice(1).join(' ') : first_name
   return { first_name, last_name }
 }
 
@@ -34,43 +33,50 @@ export async function createMastershopOrder(orderData: {
   }
 
   const { first_name, last_name } = splitName(orderData.full_name)
+  const id_order = `fem-form-${Date.now()}`
 
   const addressObj = {
+    country: 'CO',
+    state: orderData.department,
+    city: orderData.city,
+    address1: orderData.address,
+    address2: null,
+    company: null,
+    zip: null,
+    full_name: orderData.full_name,
     first_name,
     last_name,
-    full_name: orderData.full_name,
     phone: orderData.phone,
-    address1: orderData.address,
-    address2: 'Casa',
-    city: orderData.city,
-    state: orderData.department,
-    zip: '000000',
-    country: 'CO',
-    company: 'Grupo MSM',
   }
 
   const body = {
-    id_order: `ugc-${orderData.ugc_id}`,
+    id_order,
+    id_status: 2,
+    carrier: 'Coordinadora',
+    notes: [],
+    tags: [],
     shipping_address: addressObj,
     billing_address: addressObj,
     order_transaction: {
       total: PRODUCT.price,
       currency: 'COP',
-      payment_method: 'pia', // sin recaudo (pago anticipado)
+      payment_method: 'pia',
+      payment_gateway: 'Pago_Anticipado',
     },
     customer: {
+      full_name: orderData.full_name,
       first_name,
       last_name,
-      full_name: orderData.full_name,
+      email: orderData.email || null,
       phone: orderData.phone,
-      email: orderData.email,
-      documentType: 'CC',
-      documentNumber: orderData.phone,
+      tags: [],
+      documentType: null,
+      documentNumber: null,
     },
     order_items: [
       {
-        id_product: PRODUCT.id_product,
         id_variant: PRODUCT.id_variant,
+        id_product: PRODUCT.id_product,
         quantity: 1,
         sku: PRODUCT.sku,
         name: PRODUCT.name,
@@ -78,6 +84,7 @@ export async function createMastershopOrder(orderData: {
         price: PRODUCT.price,
       },
     ],
+    additional_charge: [],
   }
 
   try {
