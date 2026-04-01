@@ -29,15 +29,12 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Fire contract + order AFTER response is sent (non-blocking)
+  // Fire contract generation AFTER response is sent (non-blocking)
+  // Order is created only after the creator signs the contract
   after(async () => {
     try {
       const { generateContract } = await import('@/lib/contracts/generate')
-      const { createOrderForUGC } = await import('@/lib/orders/create')
-      await Promise.all([
-        generateContract(supabase, ugc),
-        createOrderForUGC(supabase, ugc),
-      ])
+      await generateContract(supabase, ugc)
     } catch (err) {
       console.error('Post-registration tasks failed:', err)
     }

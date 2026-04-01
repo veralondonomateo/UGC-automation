@@ -33,7 +33,7 @@ export async function createOrderForUGC(supabase: any, ugc: Record<string, strin
   await sendWhatsAppWithLog(supabase, {
     phone: ugc.phone,
     template: 'order_sent',
-    params: [ugc.full_name, order.tracking_url || 'Sin tracking aún'],
+    params: [ugc.full_name],
     ugc_id: ugc.id,
   })
 

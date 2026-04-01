@@ -1,4 +1,4 @@
-import { whatsappTemplates, TemplateKey } from './templates'
+import { TemplateKey } from './templates'
 
 interface SendWhatsAppParams {
   phone: string
@@ -7,20 +7,20 @@ interface SendWhatsAppParams {
 }
 
 export async function sendWhatsApp({ phone, template, params }: SendWhatsAppParams) {
-  const WABA_ID = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID
+  const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID
   const TOKEN = process.env.WHATSAPP_ACCESS_TOKEN
 
-  if (!WABA_ID || !TOKEN) {
+  if (!PHONE_ID || !TOKEN) {
     console.warn('WhatsApp credentials not configured')
     return { success: false, error: 'No credentials' }
   }
 
-  // Build message from template
-  const templateFn = whatsappTemplates[template] as (...args: string[]) => string
-  const message = templateFn(...params)
+  const components = params.length > 0
+    ? [{ type: 'body', parameters: params.map(p => ({ type: 'text', text: p })) }]
+    : []
 
   try {
-    const res = await fetch(`https://graph.facebook.com/v18.0/${WABA_ID}/messages`, {
+    const res = await fetch(`https://graph.facebook.com/v18.0/${PHONE_ID}/messages`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${TOKEN}`,
@@ -29,8 +29,12 @@ export async function sendWhatsApp({ phone, template, params }: SendWhatsAppPara
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         to: phone.replace(/\D/g, ''),
-        type: 'text',
-        text: { body: message },
+        type: 'template',
+        template: {
+          name: template,
+          language: { code: 'es' },
+          components,
+        },
       }),
     })
 
