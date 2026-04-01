@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { addDays } from 'date-fns'
 
 // Meta webhook verification
@@ -26,7 +26,6 @@ function extractMessage(body: any) {
 
 function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, '')
-  // Strip Colombian country code 57 if present (57 + 10 digits = 12)
   if (digits.startsWith('57') && digits.length === 12) return digits.slice(2)
   return digits
 }
@@ -43,16 +42,14 @@ export async function POST(req: NextRequest) {
   const mediaId: string | undefined = message[type]?.id
   if (!mediaId) return NextResponse.json({ ok: true })
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
-  // Match sender phone to a UGC
   const senderPhone = normalizePhone(from)
   const { data: ugcs } = await supabase.from('ugcs').select('id, score, phone')
   const ugc = ugcs?.find((u: { phone: string }) => normalizePhone(u.phone) === senderPhone)
 
   if (!ugc) return NextResponse.json({ ok: true })
 
-  // Save video — store WhatsApp media ID as reference
   const deadline = addDays(new Date(), 3).toISOString()
   await supabase.from('videos').insert({
     ugc_id: ugc.id,
@@ -62,7 +59,6 @@ export async function POST(req: NextRequest) {
     upload_date: new Date().toISOString(),
   })
 
-  // Reward score
   await supabase
     .from('ugcs')
     .update({ score: Math.min(100, (ugc.score || 0) + 20) })
